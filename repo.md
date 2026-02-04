@@ -84,4 +84,4 @@ Quest generation is not working as intended. The Quest board should be populated
 
 ## PR链接
 
-待创建
+https://github.com/ncepudlgc/b1378_pre/pull/1
