@@ -239,80 +239,22 @@ namespace TextRPG
         
         private void RefreshQuestBoard()
         {
-            AvailableQuests.Clear();
+            string currentSeason = Calendar.GetCurrentSeason();
             
-            // Generate 2 level 1 quests
-            for (int i = 0; i < 2; i++)
+            // Only refresh quest board when season changes
+            if (LastSeason != currentSeason)
             {
-                string season = Random.Next(100) < 70 ? Calendar.GetCurrentSeason() : 
-                    Calendar.GetAllSeasons()[Random.Next(Calendar.GetAllSeasons().Length)];
-                SeasonalQuest quest = GenerateSeasonalQuest(season, 1); // Level 1 quest
-                AvailableQuests.Add(quest);
+                AvailableQuests.Clear();
+                
+                // Generate regular quests using QuestManager: 2 quests per dungeon level for current season
+                var regularQuests = QuestManager.GenerateSeasonQuests();
+                AvailableQuests.AddRange(regularQuests);
+                
+                // Generate and place one bonus seasonal quest in a random dungeon location
+                QuestManager.GenerateAndPlaceBonusQuest();
+                
+                LastSeason = currentSeason;
             }
-
-            // Generate 2 level 2 quests
-            for (int i = 0; i < 2; i++)
-            {
-                string season = Random.Next(100) < 70 ? Calendar.GetCurrentSeason() : 
-                    Calendar.GetAllSeasons()[Random.Next(Calendar.GetAllSeasons().Length)];
-                SeasonalQuest quest = GenerateSeasonalQuest(season, 2); // Level 2 quest
-                AvailableQuests.Add(quest);
-            }
-
-            // Generate 2 level 3 quests
-            for (int i = 0; i < 2; i++)
-            {
-                string season = Random.Next(100) < 70 ? Calendar.GetCurrentSeason() : 
-                    Calendar.GetAllSeasons()[Random.Next(Calendar.GetAllSeasons().Length)];
-                SeasonalQuest quest = GenerateSeasonalQuest(season, 3); // Level 3 quest
-                AvailableQuests.Add(quest);
-            }
-        }
-        
-        private SeasonalQuest GenerateSeasonalQuest(string season, int requiredLevel)
-        {
-            string[] questTypes = {
-                "Defeat the {0} Infestation",
-                "Clear the {0} Nest",
-                "Hunt the {0} Pack",
-                "Investigate the {0} Disturbance",
-                "Protect against {0} Invasion"
-            };
-
-            // Add special quest types for level 3
-            if (requiredLevel == 3)
-            {
-                questTypes = new string[] {
-                    "Confront the {0} Lord",
-                    "Challenge the {0} Champion",
-                    "Defeat the {0} Guardian",
-                    "Face the {0} Master",
-                    "Battle the {0} Tyrant"
-                };
-            }
-
-            string[] enemyTypes = Calendar.GetSeasonalEnemyTypes();
-            string enemyType = enemyTypes[Random.Next(enemyTypes.Length)];
-            
-            string questName = string.Format(questTypes[Random.Next(questTypes.Length)], enemyType);
-            string description = requiredLevel == 3 
-                ? $"A powerful {enemyType} awaits in the deepest level of the dungeon. Defeat it to complete this quest."
-                : $"Defeat {enemyType} enemies to complete this quest.";
-            
-            // Base rewards that will be modified by difficulty and level
-            int baseExp = 100;
-            int baseGold = 50;
-            
-            // Random difficulty (1-3)
-            int difficulty = Random.Next(1, 4);
-            
-            // Scale rewards based on difficulty and level
-            // Level 3 quests give significantly more rewards
-            double levelMultiplier = requiredLevel == 3 ? 3.0 : 1.0;
-            int expReward = (int)(baseExp * difficulty * levelMultiplier);
-            int goldReward = (int)(baseGold * difficulty * levelMultiplier);
-            
-            return new SeasonalQuest(questName, description, expReward, goldReward, season, difficulty, Calendar, requiredLevel, enemyType);
         }
         
         private void VisitBlacksmith()

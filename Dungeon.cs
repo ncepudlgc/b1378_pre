@@ -665,20 +665,57 @@ namespace TextRPG
         {
             if (Player == null || Display == null || quest == null) return;
 
-            Display.displayString($"\n=== Quest Objective Found ===");
-            Display.displayString($"Quest: {quest.Name}");
-            Display.displayString($"Description: {quest.Description}");
-            Display.displayString($"Progress: {quest.CurrentEnemyDefeats}/{quest.RequiredEnemyDefeats} enemies defeated");
-
-            // Check if the quest can be completed
-            if (quest.IsComplete())
+            // Check if player already has this quest in their quest log
+            var existingQuest = Player.Quests.FirstOrDefault(q => q.Name == quest.Name);
+            
+            if (existingQuest != null)
             {
-                Display.displayString("\nQuest completed! You receive:");
-                Player.AddExperience(quest.ExperienceReward);
-                Display.displayString($"- {quest.ExperienceReward} Experience Points");
-                Player.AddGold(quest.GoldReward);
-                Display.displayString($"- {quest.GoldReward} Gold");
-                Player.Quests.Remove(quest);
+                // Player already has this quest - show progress
+                Display.displayString($"\n=== Quest Objective Found ===");
+                Display.displayString($"Quest: {existingQuest.Name}");
+                Display.displayString($"Description: {existingQuest.Description}");
+                Display.displayString($"Progress: {existingQuest.CurrentEnemyDefeats}/{existingQuest.RequiredEnemyDefeats} enemies defeated");
+
+                // Check if the quest can be completed
+                if (existingQuest.IsComplete())
+                {
+                    Display.displayString("\nQuest completed! You receive:");
+                    Player.AddExperience(existingQuest.ExperienceReward);
+                    Display.displayString($"- {existingQuest.ExperienceReward} Experience Points");
+                    Player.AddGold(existingQuest.GoldReward);
+                    Display.displayString($"- {existingQuest.GoldReward} Gold");
+                    Player.Quests.Remove(existingQuest);
+                    
+                    // Remove quest marker from map
+                    var markerToRemove = QuestMarkers[CurrentLevel].FirstOrDefault(kvp => kvp.Value == quest).Key;
+                    if (markerToRemove != default(char))
+                    {
+                        QuestMarkers[CurrentLevel].Remove(markerToRemove);
+                        LevelQuests[CurrentLevel].Remove(quest);
+                    }
+                }
+            }
+            else
+            {
+                // This is a bonus quest that player hasn't accepted yet - allow them to accept it
+                Display.displayString($"\n=== Bonus Quest Discovered! ===");
+                Display.displayString($"Quest: {quest.Name}");
+                Display.displayString($"Description: {quest.Description}");
+                Display.displayString($"Rewards: {quest.ExperienceReward} XP, {quest.GoldReward} Gold");
+                
+                // Check if player has space for more quests
+                if (Player.Quests.Count >= 5)
+                {
+                    Display.displayString("\nYou can only have 5 active quests at a time.");
+                    Display.displayString("Complete some quests before accepting new ones.");
+                }
+                else
+                {
+                    // Accept the bonus quest
+                    Display.displayString("\nYou've accepted the bonus quest!");
+                    Player.Quests.Add(quest);
+                    Calendar.RecordAction(false); // Record accepting a quest as a non-combat action
+                }
             }
         }
 
