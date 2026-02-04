@@ -16,8 +16,6 @@ namespace TextRPG
         private GameCalendar Calendar { get; }
         private Random Random { get; } = new Random();
         private Dungeon Dungeon { get; }
-        private QuestManager QuestManager { get; }
-        private string LastSeason { get; set; }
     
         public TownSquare(Character player, Display display, GameCalendar calendar, Dungeon dungeon)
         {
@@ -25,8 +23,6 @@ namespace TextRPG
             Display = display;
             Calendar = calendar;
             Dungeon = dungeon;
-            QuestManager = new QuestManager(calendar, dungeon);
-            LastSeason = calendar.GetCurrentSeason();
             
             // Initialize shop inventory
             ShopInventory.Add(new HealingPotion("Small Potion", "Restores 20 HP", 10, 20));
@@ -243,30 +239,33 @@ namespace TextRPG
         
         private void RefreshQuestBoard()
         {
-            string currentSeason = Calendar.GetCurrentSeason();
+            AvailableQuests.Clear();
             
-            // Check if season has changed - if so, regenerate all quests for the new season
-            if (currentSeason != LastSeason)
+            // Generate 2 level 1 quests
+            for (int i = 0; i < 2; i++)
             {
-                LastSeason = currentSeason;
-                AvailableQuests.Clear();
-                
-                // Generate two regular quests per dungeon level for the current season
-                List<SeasonalQuest> seasonQuests = QuestManager.GenerateSeasonQuests();
-                AvailableQuests.AddRange(seasonQuests);
-                
-                // Generate and place one seasonal bonus quest randomly in the dungeon
-                SeasonalQuest bonusQuest = QuestManager.GenerateAndPlaceBonusQuest();
-                Display?.displayString($"A special seasonal bonus quest has appeared in the dungeon!");
+                string season = Random.Next(100) < 70 ? Calendar.GetCurrentSeason() : 
+                    Calendar.GetAllSeasons()[Random.Next(Calendar.GetAllSeasons().Length)];
+                SeasonalQuest quest = GenerateSeasonalQuest(season, 1); // Level 1 quest
+                AvailableQuests.Add(quest);
             }
-            else
+
+            // Generate 2 level 2 quests
+            for (int i = 0; i < 2; i++)
             {
-                // If same season, just refresh the available quests on the board
-                AvailableQuests.Clear();
-                
-                // Generate two regular quests per dungeon level for the current season
-                List<SeasonalQuest> seasonQuests = QuestManager.GenerateSeasonQuests();
-                AvailableQuests.AddRange(seasonQuests);
+                string season = Random.Next(100) < 70 ? Calendar.GetCurrentSeason() : 
+                    Calendar.GetAllSeasons()[Random.Next(Calendar.GetAllSeasons().Length)];
+                SeasonalQuest quest = GenerateSeasonalQuest(season, 2); // Level 2 quest
+                AvailableQuests.Add(quest);
+            }
+
+            // Generate 2 level 3 quests
+            for (int i = 0; i < 2; i++)
+            {
+                string season = Random.Next(100) < 70 ? Calendar.GetCurrentSeason() : 
+                    Calendar.GetAllSeasons()[Random.Next(Calendar.GetAllSeasons().Length)];
+                SeasonalQuest quest = GenerateSeasonalQuest(season, 3); // Level 3 quest
+                AvailableQuests.Add(quest);
             }
         }
         

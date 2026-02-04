@@ -64,14 +64,6 @@ namespace TextRPG
         private void HandleSeasonChange()
         {
             Display?.displayString("The dungeon has changed with the new season!");
-            
-            // Clear all existing quests from all levels
-            for (int i = 0; i < MaxLevels; i++)
-            {
-                LevelQuests[i].Clear();
-                QuestMarkers[i].Clear();
-            }
-            
             GenerateRandomMap();
         }
 
@@ -676,39 +668,17 @@ namespace TextRPG
             Display.displayString($"\n=== Quest Objective Found ===");
             Display.displayString($"Quest: {quest.Name}");
             Display.displayString($"Description: {quest.Description}");
-            
-            // Check if player already has this quest
-            if (Player.Quests.Any(q => q.Name == quest.Name))
+            Display.displayString($"Progress: {quest.CurrentEnemyDefeats}/{quest.RequiredEnemyDefeats} enemies defeated");
+
+            // Check if the quest can be completed
+            if (quest.IsComplete())
             {
-                Display.displayString($"Progress: {quest.CurrentEnemyDefeats}/{quest.RequiredEnemyDefeats} enemies defeated");
-                
-                // Check if the quest can be completed
-                if (quest.IsComplete())
-                {
-                    Display.displayString("\nQuest completed! You receive:");
-                    Player.AddExperience(quest.ExperienceReward);
-                    Display.displayString($"- {quest.ExperienceReward} Experience Points");
-                    Player.AddGold(quest.GoldReward);
-                    Display.displayString($"- {quest.GoldReward} Gold");
-                    Player.Quests.Remove(quest);
-                }
-            }
-            else
-            {
-                // This is a bonus quest found in the dungeon - accept it
-                if (Player.Quests.Count >= 5)
-                {
-                    Display.displayString("You can only have 5 active quests at a time.");
-                    Display.displayString("Complete some quests before accepting new ones.");
-                }
-                else
-                {
-                    Display.displayString($"\nYou've discovered a bonus quest: {quest.Name}");
-                    Display.displayString($"Progress: {quest.CurrentEnemyDefeats}/{quest.RequiredEnemyDefeats} enemies defeated");
-                    Display.displayString($"Rewards: {quest.ExperienceReward} XP, {quest.GoldReward} Gold");
-                    Player.Quests.Add(quest);
-                    Display.displayString("Quest added to your quest log!");
-                }
+                Display.displayString("\nQuest completed! You receive:");
+                Player.AddExperience(quest.ExperienceReward);
+                Display.displayString($"- {quest.ExperienceReward} Experience Points");
+                Player.AddGold(quest.GoldReward);
+                Display.displayString($"- {quest.GoldReward} Gold");
+                Player.Quests.Remove(quest);
             }
         }
 
